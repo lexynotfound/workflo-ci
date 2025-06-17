@@ -1,0 +1,17 @@
+name: candidate-recommendation-mlflow
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_path: {type: string, default: "career_form_preprocessed"}
+      model_type: {type: string, default: "kmeans"}
+      optuna_trials: {type: int, default: 20}
+    command: "python modelling.py --data_path {data_path} --model_type {model_type} --optuna_trials {optuna_trials}"
+
+  tuning:
+    parameters:
+      data_path: {type: string, default: "career_form_preprocessed"}
+      optuna_trials: {type: int, default: 20}
+    command: "python modelling_tuning.py --data_path {data_path} --optuna_trials {optuna_trials}"

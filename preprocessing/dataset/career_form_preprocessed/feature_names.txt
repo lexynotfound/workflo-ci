@@ -1,0 +1,16 @@
+Expected salary (IDR)
+Gender_Female
+Gender_Male
+Marital status_Married
+Marital status_Single
+Highest formal of education_D3
+Highest formal of education_S1/D4
+Highest formal of education_S2
+Highest formal of education_SMA/SMK
+Current status_Freelance
+Current status_Fulltime
+Current status_Unemployed
+Experience_1-3 years
+Experience_3-5 years
+Experience_Fresh graduate
+Experience_More than 5 years
