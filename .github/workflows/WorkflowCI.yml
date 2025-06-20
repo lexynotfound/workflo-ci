@@ -1,0 +1,101 @@
+name: MLOps CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Menggunakan MLflow versi 2.15.1 yang spesifik
+        pip install mlflow==2.15.1 scikit-learn pandas numpy matplotlib seaborn optuna joblib pytest prometheus-client flask
+
+    - name: Download dataset
+      run: |
+        # In a real scenario, you would securely download your dataset
+        # For the submission, we'll assume the dataset is already in the repo
+        mkdir -p preprocessing/dataset/career_form_preprocessed
+        echo "Dataset prepared for processing"
+
+    - name: Run preprocessing
+      run: |
+        # Path yang benar ke script preprocessing
+        python preprocessing/automate_Kurnia_Raihan_Ardian.py
+
+    - name: Start MLflow server
+      run: |
+        # Start MLflow server in background
+        mlflow server --port 8000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns &
+        # Wait for server to start
+        sleep 10
+
+    - name: Run MLflow project
+      run: |
+        # Masuk ke folder WorkFlow-CI yang berisi MLProject
+        cd WorkFlow-CI
+        # MLflow 2.15.1 sudah menggunakan --env-manager=local, bukan --no-conda
+        mlflow run . --env-manager=local
+
+    - name: Build Docker image
+      run: |
+        # Menggunakan Dockerfile dari folder WorkFlow-CI
+        docker build -t candidate-recommender:latest -f WorkFlow-CI/Dockerfile .
+
+    - name: Login to DockerHub
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Push image
+      if: github.event_name != 'pull_request'
+      run: |
+        docker tag candidate-recommender:latest ${{ secrets.DOCKER_USERNAME }}/candidate-recommender:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/candidate-recommender:latest
+
+    - name: Save membangun_model artifacts
+      run: |
+        mkdir -p model-artifacts
+        
+        # Find the most recent run
+        LATEST_RUN=$(find mlruns -name artifacts -type d | sort -r | head -n 1)
+        
+        if [ -z "$LATEST_RUN" ]; then
+          echo "No MLflow artifacts found!"
+          exit 1
+        else
+          echo "Found artifacts at: $LATEST_RUN"
+          cp -r $LATEST_RUN/* model-artifacts/
+        fi
+
+    - name: Upload membangun_model artifacts to GitHub
+      uses: actions/upload-artifact@v3
+      with:
+        name: membangun_model-artifacts
+        path: membangun_model-artifacts/
+
+    - name: Verify artifacts
+      run: |
+        # Add basic verification
+        ls -la model-artifacts
+        if [ ! -d "model-artifacts" ] || [ -z "$(ls -A model-artifacts)" ]; then
+          echo "ERROR: Model artifacts not found or empty!"
+          exit 1
+        fi
+        echo "Artifacts verified successfully"
