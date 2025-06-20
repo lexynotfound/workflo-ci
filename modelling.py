@@ -28,6 +28,7 @@ else:
 # Set experiment
 experiment_name = "candidate_recommendation_system"
 mlflow.set_experiment(experiment_name)
+mlflow.autolog()
 
 def load_data(data_dir):
     """Load preprocessed data"""
@@ -37,7 +38,7 @@ def load_data(data_dir):
 
 
 def train_model():
-    """Train a candidate clustering model"""
+    """Train a candidate clustering membangun_model"""
     # Load preprocessed data
     data_dir = '../preprocessing/dataset/career_form_preprocessed'
     X, target_df = load_data(data_dir)
@@ -51,7 +52,7 @@ def train_model():
         # Split data for validation
         X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
 
-        # Train K-means clustering model (find optimal k)
+        # Train K-means clustering membangun_model (find optimal k)
         silhouette_scores = []
         k_values = range(2, 10)
 
@@ -66,7 +67,7 @@ def train_model():
         optimal_k = k_values[np.argmax(silhouette_scores)]
         mlflow.log_param("optimal_k", optimal_k)
 
-        # Train final model with optimal k
+        # Train final membangun_model with optimal k
         final_model = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
         final_model.fit(X_train)
 
@@ -75,7 +76,7 @@ def train_model():
         test_score = silhouette_score(X_test, test_labels)
         mlflow.log_metric("test_silhouette_score", test_score)
 
-        # Log model
+        # Log membangun_model
         mlflow.sklearn.log_model(final_model, "kmeans_model")
 
         # PERBAIKAN: Tangani nilai NaN dalam kolom desired_positions
@@ -162,7 +163,7 @@ def train_model():
         print(f"Test silhouette score: {test_score:.4f}")
         print(f"Cluster centers shape: {cluster_centers.shape}")
 
-        # Return model for further use
+        # Return membangun_model for further use
         return final_model, tfidf
 
 
