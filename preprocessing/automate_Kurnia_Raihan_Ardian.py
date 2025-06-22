@@ -60,4 +60,4 @@ def preprocess_data(input_file, output_dir):
 
 
 if __name__ == "__main__":
-    preprocess_data('../dataset/forminator-career-form-250124070425.csv', '../dataset/career_form_preprocessed')
+    preprocess_data('../dataset/forminator-career-form-250124070425.csv', 'dataset/career_form_preprocessed')
