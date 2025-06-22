@@ -10,22 +10,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install mlflow scikit-learn pandas numpy flask fastapi uvicorn prometheus_client
         echo "✅ Dependencies installed"
-        
+
     - name: Debug file locations
       run: |
         echo "=== Repository Structure ==="
@@ -33,7 +33,7 @@ jobs:
         echo ""
         echo "=== Looking for preprocessing script ==="
         find . -name "*automate_Kurnia_Raihan_Ardian*" -type f || echo "Script not found"
-        
+
     - name: Run preprocessing with smart detection
       run: |
         echo "🔍 Smart script detection..."
@@ -61,14 +61,14 @@ jobs:
         fi
         
         echo "✅ Preprocessing completed"
-        
+
     - name: Start MLflow server
       run: |
         echo "🚀 Starting MLflow server..."
         mlflow server --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 &
         sleep 10
         echo "✅ MLflow server started"
-        
+
     - name: Run MLflow project
       run: |
         export MLFLOW_TRACKING_URI=http://localhost:5000
@@ -134,20 +134,20 @@ EOF
         fi
         
         echo "✅ Artifacts collected"
-        
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: model-artifacts-${{ github.run_number }}
         path: model-artifacts/
         retention-days: 30
-        
+
     - name: Cleanup
       if: always()
       run: |
         pkill -f "mlflow server" 2>/dev/null || true
         echo "✅ Cleanup completed"
-        
+
     - name: Summary
       run: |
         echo "🎉 PIPELINE COMPLETED SUCCESSFULLY!"
