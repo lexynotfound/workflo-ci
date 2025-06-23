@@ -1,4 +1,4 @@
-name: workflow
+name: MLOps CI Pipeline
 on:
   push:
     branches: [ main ]
@@ -116,7 +116,7 @@ jobs:
           --experiment-name="candidate-recommender-experiment" \
           -P data_path="preprocessing/dataset/career_form_preprocessed/data.csv" \
           -P model_name="candidate_model" \
-          --no-conda
+          --env-manager=local
 
     - name: Create Artifacts
       run: |
