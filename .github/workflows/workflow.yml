@@ -1,4 +1,4 @@
-name: MLOps CI Pipeline
+name: workflow
 on:
   push:
     branches: [ main ]
@@ -9,14 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
     - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-    
+
     - name: Install Dependencies
       run: pip install mlflow scikit-learn pandas numpy flask
-    
+
     - name: Prepare Data
       run: |
         mkdir -p preprocessing/dataset/career_form_preprocessed
@@ -24,7 +24,7 @@ jobs:
         echo "1,0.5,A" >> preprocessing/dataset/career_form_preprocessed/data.csv
         echo "2,0.8,B" >> preprocessing/dataset/career_form_preprocessed/data.csv
         echo "3,0.3,A" >> preprocessing/dataset/career_form_preprocessed/data.csv
-    
+
     - name: Create MLproject File
       run: |
         cat > MLproject << EOF
@@ -39,7 +39,7 @@ jobs:
               model_name: {type: str, default: "candidate_model"}
             command: "python train.py {data_path} {model_name}"
         EOF
-    
+
     - name: Create Conda Environment File
       run: |
         cat > conda.yaml << EOF
@@ -55,7 +55,7 @@ jobs:
             - pandas
             - numpy
         EOF
-    
+
     - name: Create Training Script
       run: |
         cat > train.py << EOF
@@ -105,7 +105,7 @@ jobs:
             model_name = sys.argv[2] if len(sys.argv) > 2 else "candidate_model"
             main(data_path, model_name)
         EOF
-    
+
     - name: Run MLflow Project
       run: |
         # Set MLflow tracking URI
@@ -117,7 +117,7 @@ jobs:
           -P data_path="preprocessing/dataset/career_form_preprocessed/data.csv" \
           -P model_name="candidate_model" \
           --no-conda
-    
+
     - name: Create Artifacts
       run: |
         mkdir -p artifacts
@@ -132,7 +132,7 @@ jobs:
         echo "Model: candidate_model" > artifacts/model_info.txt
         echo "Framework: MLflow + Scikit-learn" >> artifacts/model_info.txt
         echo "Status: Trained successfully" >> artifacts/model_info.txt
-    
+
     - name: Build Docker Image
       run: |
         cat > Dockerfile << EOF
@@ -170,13 +170,13 @@ jobs:
         EOF
         
         docker build -t candidate-recommender .
-    
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: mlflow-artifacts
         path: artifacts/
-    
+
     - name: Pipeline Complete
       run: |
         echo "✅ MLflow project executed successfully"
